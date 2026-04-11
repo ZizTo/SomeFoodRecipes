@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Книга рецептов</string>
+    <string name="search_hint">Поиск (на англ., например chicken)</string>
+    <string name="search_button">Искать</string>
+    <string name="go_to_favorites">Перейти к избранному</string>
+    <string name="favorites_title">Избранные рецепты</string>
+    <string name="instructions">Рецепт:</string>
+    <string name="no_instructions">Нет рецепта</string>
+    <string name="no_internet_title">Нет интернета</string>
+    <string name="no_internet_msg">Пожалуйста, проверьте подключение к сети и попробуйте снова.</string>
+    <string name="retry">Повторить</string>
+</resources>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Recipe Book</string>
+    <string name="search_hint">Search recipe (e.g., chicken)</string>
+    <string name="search_button">Search</string>
+    <string name="go_to_favorites">Go to Favorites</string>
+    <string name="favorites_title">Favorite Recipes</string>
+    <string name="instructions">Instructions:</string>
+    <string name="no_instructions">No instructions</string>
+    <string name="no_internet_title">No Internet Connection</string>
+    <string name="no_internet_msg">Please check your internet connection and try again.</string>
+    <string name="retry">Retry</string>
+</resources>
