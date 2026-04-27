@@ -31,16 +31,33 @@ jobs:
           restore-keys: ${{ runner.os }}-gradle-
 
       - name: Build (assembleDebug)
-        run: ./gradlew assembleDebug
+        run: ./gradlew clean build
 
       - name: Run unit tests
         run: ./gradlew testDebugUnitTest
 
-      - name: Upload test reports
-        if: always()
-        uses: actions/upload-artifact@v4
+      - name: AVD cache
+        uses: actions/cache@v4
+        id: avd-cache
         with:
-          name: test-reports
           path: |
-            app/build/reports/tests/
-            app/build/test-results/
+            ~/.android/avd/*
+            ~/.android/adb*
+          key: avd-30
+
+      - name: Create AVD
+        if: steps.avd-cache.outputs.cache-hit != 'true'
+        run: |
+          echo "y" | sdkmanager --install "system-images;android-30;google_apis;x86"
+          echo "no" | avdmanager create avd -n test_avd -k "system-images;android-30;google_apis;x86" --force
+
+      - name: Start emulator
+        run: |
+            echo "Starting emulator..."
+            $ANDROID_HOME/emulator/emulator -avd test_avd -no-audio -no-window -no-snapshot -gpu swiftshader_indirect &
+            adb wait-for-device
+            adb shell input keyevent 82  # разблокировать экран
+
+
+      - name: Build and run test
+        run: ./gradlew clean build testDebugUnitTest connectedAndroidTest
