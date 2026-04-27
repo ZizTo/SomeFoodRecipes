@@ -1,5 +1,6 @@
 package com.zizto.somefoodrecipes
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -11,8 +12,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class RecipeViewModel(private val api: MealApi, private val dao: MealDao) : ViewModel() {
+private const val TAG = "RecipeViewModel"
 
+class RecipeViewModel(private val api: MealApi, private val dao: MealDao) : ViewModel() {
     private val _searchResults = MutableStateFlow<List<MealDto>>(emptyList())
     val searchResults: StateFlow<List<MealDto>> = _searchResults
 
@@ -22,24 +24,36 @@ class RecipeViewModel(private val api: MealApi, private val dao: MealDao) : View
     val favoriteMeals = dao.getAllFavorites()
 
     fun search(query: String) {
+        Log.d(TAG, "Поиск рецептов по запросу: $query")
         viewModelScope.launch {
             _isLoading.value = true
             try {
                 val response = api.searchMeals(query)
+                Log.d(TAG, "Получено ${response.meals?.size ?: 0} результатов")
                 _searchResults.value = response.meals ?: emptyList()
             } catch (e: Exception) {
+                Log.e(TAG, "Ошибка при поиске рецептов: $e")
                 _searchResults.value = emptyList()
             } finally {
                 _isLoading.value = false
+                Log.d(TAG, "Поиск завершён, isLoading = false")
             }
         }
     }
 
     suspend fun getRecipeDetails(id: String): MealDto? {
+        Log.d(TAG, "Загрузка деталей рецепта с ID: $id")
         return try {
             val response = api.getMealDetails(id)
-            response.meals?.firstOrNull()
+            val meal = response.meals?.firstOrNull()
+            if (meal != null) {
+                Log.d(TAG, "Детали рецепта получены: ${meal.strMeal}")
+            } else {
+                Log.w(TAG, "Рецепт с ID $id не найден")
+            }
+            meal
         } catch (e: Exception) {
+            Log.e(TAG, "Ошибка при загрузке деталей рецепта: $e")
             null
         }
     }
@@ -56,8 +70,10 @@ class RecipeViewModel(private val api: MealApi, private val dao: MealDao) : View
             )
             if (isFav) {
                 dao.deleteFavorite(favMeal)
+                Log.d(TAG, "Рецепт ${meal.strMeal} удалён из избранного")
             } else {
                 dao.insertFavorite(favMeal)
+                Log.d(TAG, "Рецепт ${meal.strMeal} добавлен в избранное")
             }
         }
     }
@@ -65,6 +81,7 @@ class RecipeViewModel(private val api: MealApi, private val dao: MealDao) : View
 
 class RecipeViewModelFactory(private val api: MealApi, private val dao: MealDao) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        Log.d("RecipeViewModelFactory", "Создание экземпляра RecipeViewModel")
         return RecipeViewModel(api, dao) as T
     }
 }

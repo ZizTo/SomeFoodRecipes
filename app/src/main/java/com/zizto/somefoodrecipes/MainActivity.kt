@@ -15,6 +15,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.*
@@ -24,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
@@ -106,7 +108,11 @@ fun RecipeApp(navController: NavHostController, viewModel: RecipeViewModel) {
         }
         composable("details/{mealId}") { backStackEntry ->
             val mealId = backStackEntry.arguments?.getString("mealId") ?: ""
-            RecipeDetailScreen(mealId, viewModel)
+            RecipeDetailScreen(
+                mealId = mealId,
+                viewModel = viewModel,
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
         composable("favorites") {
             FavoritesScreen(viewModel, onNavigateToDetails = { id ->
@@ -178,7 +184,11 @@ fun SearchScreen(viewModel: RecipeViewModel, onNavigateToDetails: (String) -> Un
 }
 
 @Composable
-fun RecipeDetailScreen(mealId: String, viewModel: RecipeViewModel) {
+fun RecipeDetailScreen(
+    mealId: String,
+    viewModel: RecipeViewModel,
+    onNavigateBack: () -> Unit
+) {
     var meal by remember { mutableStateOf<com.zizto.somefoodrecipes.data.MealDto?>(null) }
     val isFavorite by viewModel.isFavorite(mealId).collectAsState(initial = false)
 
@@ -188,27 +198,43 @@ fun RecipeDetailScreen(mealId: String, viewModel: RecipeViewModel) {
 
     meal?.let { currentMeal ->
         Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = onNavigateBack, modifier = Modifier.testTag("detailBackButton")) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack,
+                        contentDescription = "Назад"
+                    )
+                }
+                Text(
+                    text = currentMeal.strMeal,
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.weight(1f),
+                    maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                )
+                // Иконка избранного перенесена сюда или может остаться ниже
+                IconButton(onClick = { viewModel.toggleFavorite(currentMeal, isFavorite) }, modifier = Modifier.testTag("favoriteIcon")) {
+                    Icon(
+                        imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                        contentDescription = null,
+                        tint = if (isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
+
             AsyncImage(
                 model = currentMeal.strMealThumb,
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxWidth().height(250.dp)
             )
+
             Column(modifier = Modifier.padding(16.dp)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(text = currentMeal.strMeal, style = MaterialTheme.typography.headlineMedium)
-                    IconButton(onClick = { viewModel.toggleFavorite(currentMeal, isFavorite) }) {
-                        Icon(
-                            imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                            contentDescription = null,
-                            tint = if (isFavorite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                }
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(text = stringResource(R.string.instructions), style = MaterialTheme.typography.titleMedium)
                 Spacer(modifier = Modifier.height(8.dp))
