@@ -1,28 +1,56 @@
-name: Android CI (Kotlin 2.0.21)
+name: Android CI
 
 on:
   push:
-    branches: [ "main", "develop" ]
+    branches: [ main ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ main ]
 
 jobs:
-  ui-test:
+  build:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
+      - uses: actions/checkout@v2
+      - name: set up JDK 17
+        uses: actions/setup-java@v1
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          java-version: 17
+      - uses: actions/cache@v1
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}-${{ hashFiles('**/gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: ${{ runner.os }}-gradle-
+      - name: Build with Gradle
+        run: ./gradlew build
+      - name: Run Unit tests
+        run: ./gradlew testDebugUnitTest
 
-      - name: Run UI tests
+  ui-testing:
+    runs-on: macos-10.15
+    strategy:
+      matrix:
+        api-level: [26, 28, 29]
+        target: [default, google_apis]
+    steps:
+      - uses: actions/checkout@v2
+      - name: set up JDK 17
+        uses: actions/setup-java@v1
+        with:
+          java-version: 17
+      - name: Checkout Branch
+        uses: actions/checkout@v2
+      - uses: actions/cache@v1
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}-${{ hashFiles('**/gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: ${{ runner.os }}-gradle-
+
+      - name: Run UI Tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 30
-          target: google_apis
-          arch: x86
-          profile: Nexus 5X
-          script: ./gradlew clean build testDebugUnitTest connectedAndroidTest
+          emulator-build: 7425822
+          api-level: ${{ matrix.api-level }}
+          target: ${{ matrix.target }}
+          arch: x86_64
+          script: ./gradlew connectedAndroidTest
