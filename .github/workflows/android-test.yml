@@ -25,11 +25,18 @@ jobs:
       - name: Build and Run Unit Tests
         run: ./gradlew :app:testDebugUnitTest
       
-      - name: Setup Android environment
+      - name: Create Android directories
         run: |
           mkdir -p /home/runner/.android/avd/
-          touch /home/runner/.android/repositories.cfg
-          echo "Android environment setup completed"
+          touch /home/runner/.android/repositories.cfg || echo "repositories.cfg already exists or cannot be created"
       
-      - name: Start Android Emulator and Run Instrumented Tests
-        uses: reactivecircus/android-emulator-runner@v2.24.
+      - name: Run instrumented tests with emulator
+        uses: reactivecircus/android-emulator-runner@v2.24.0
+        with:
+          api-level: 28
+          target: default
+          arch: x86_64
+          profile: Nexus 5
+          emulator-options: -no-snapshot-save -no-window -noaudio -no-boot-anim
+          emulator-boot-timeout: 300
+          script: ./gradlew :app:connectedDebugAndroidTest
