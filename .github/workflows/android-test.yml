@@ -25,15 +25,19 @@ jobs:
       - name: Build and Run Unit Tests
         run: ./gradlew :app:testDebugUnitTest
       
+      - name: Create AVD directory
+        run: mkdir -p /home/runner/.android/avd/
+      
       - name: Start Android Emulator and Run Instrumented Tests
         uses: reactivecircus/android-emulator-runner@v2.24.0
         with:
-          api-level: 31
+          api-level: 30
           target: google_apis
           arch: x86_64
-          profile: Nexus 5
+          profile: pixel_3a
+          cores: 2
+          ram-size: 2048M
+          heap-size: 512M
           disable-animations: true
           emulator-options: -no-snapshot-save -no-window -noaudio -no-boot-anim -gpu swiftshader_indirect
-          disable-spellchecker: true
-          emulator-build: 7425822
           script: ./gradlew :app:connectedDebugAndroidTest
