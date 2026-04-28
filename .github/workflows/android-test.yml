@@ -1,11 +1,9 @@
 name: Android CI
-
 on:
   push:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
-
 jobs:
   build-and-test:
     name: Build and Test
@@ -13,27 +11,29 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
+      
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
           cache: gradle
-
+      
       - name: Make Gradle executable
         run: chmod +x ./gradlew
-
+      
       - name: Build and Run Unit Tests
         run: ./gradlew :app:testDebugUnitTest
-
+      
       - name: Start Android Emulator and Run Instrumented Tests
         uses: reactivecircus/android-emulator-runner@v2.24.0
         with:
-          api-level: 30
+          api-level: 31
           target: google_apis
-          arch: x86
-          profile: Nexus S
+          arch: x86_64
+          profile: Nexus 5
           disable-animations: true
-          emulator-boot-timeout: 10
+          emulator-options: -no-snapshot-save -no-window -noaudio -no-boot-anim -gpu swiftshader_indirect
+          disable-spellchecker: true
+          emulator-build: 7425822
           script: ./gradlew :app:connectedDebugAndroidTest
