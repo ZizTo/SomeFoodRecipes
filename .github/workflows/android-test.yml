@@ -19,9 +19,6 @@ jobs:
           java-version: 17
           cache: gradle
       
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-      
       - name: Make Gradle executable
         run: chmod +x ./gradlew
       
@@ -36,7 +33,8 @@ jobs:
         with:
           api-level: 29
           target: google_apis
-          arch: x86_64
+          arch: arm64-v8a
           profile: pixel
           emulator-options: -no-snapshot-save -no-window -noaudio -no-boot-anim
+          disable-animations: true
           script: ./gradlew connectedDebugAndroidTest --stacktrace
