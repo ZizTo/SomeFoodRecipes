@@ -20,6 +20,8 @@ jobs:
           java-version: 17
       - name: Install Android SDK
         uses: malinskiy/action-android/install-sdk@release/0.1.2
+      - name: Make Gradle executable
+        run: chmod +x ./gradlew
       - name: Build project
         run: ./gradlew assembleDebug
       - name: Run tests
