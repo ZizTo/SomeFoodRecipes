@@ -25,11 +25,6 @@ jobs:
       - name: Build and Run Unit Tests
         run: ./gradlew :app:testDebugUnitTest
       
-      - name: Create Android directories
-        run: |
-          mkdir -p /home/runner/.android/avd/
-          touch /home/runner/.android/repositories.cfg || echo "repositories.cfg already exists or cannot be created"
-      
       - name: Run instrumented tests with emulator
         uses: reactivecircus/android-emulator-runner@v2.24.0
         with:
@@ -37,6 +32,12 @@ jobs:
           target: default
           arch: x86_64
           profile: Nexus 5
-          emulator-options: -no-snapshot-save -no-window -noaudio -no-boot-anim
-          emulator-boot-timeout: 300
-          script: ./gradlew :app:connectedDebugAndroidTest
+          emulator-options: -no-snapshot-save -no-window -noaudio -no-boot-anim -cores 2
+          script: |
+            # Wait for emulator to fully boot
+            echo "Waiting for emulator to boot..."
+            timeout 300 adb wait-for-device
+            echo "Device connected, waiting for boot completion..."
+            timeout 300 adb shell getprop sys.boot_completed | grep -q "1"
+            echo "Emulator booted, running tests..."
+            ./gradlew :app:connectedDebugAndroidTest
