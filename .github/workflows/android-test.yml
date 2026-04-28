@@ -25,11 +25,6 @@ jobs:
       - name: Make Gradle executable
         run: chmod +x ./gradlew
 
-      - name: Setup Gradle properties
-        run: |
-          echo "kotlinVersion=2.0.21" >> gradle.properties
-          echo "org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8" >> gradle.properties
-
       - name: Build and Run Unit Tests
         run: ./gradlew :app:testDebugUnitTest
 
